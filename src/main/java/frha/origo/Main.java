@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,15 +14,21 @@ import com.jsoniter.any.Any;
 
 public class Main {
 
+	private static List<String> requiredEndpints = Arrays.asList("station_information", "station_status");
+
 	public static void main(String[] args) throws IOException, InstantiationException, IllegalAccessException {
 		List<Any> res = getFromEndpoint("http://gbfs.urbansharing.com/oslobysykkel.no/gbfs.json", "feeds");
-		Map<String, String> endpoints = extractEndpoints(res);
+		Map<String, String> endpoints;
+		endpoints = extractEndpoints(res);
+		if (!endpoints.keySet().containsAll(requiredEndpints))
+			throw new RuntimeException("Fikk ikke tak i endepunktene :" + requiredEndpints);
 		res = getFromEndpoint(endpoints.get("station_information"), "stations");
 		Map<Integer, Station> stations = extractStations(res);
 		res = getFromEndpoint(endpoints.get("station_status"), "stations");
 		populateStationsWithBikeInformation(stations, res);
 		for (Station station : stations.values()) {
-			System.out.println(station);
+			if (station.numBikes + station.numLocks > 0)
+				System.out.println(station);
 		}
 	}
 
@@ -29,8 +36,10 @@ public class Main {
 		for (Any any : res) {
 			Map<String, Any> tmp = any.asMap();
 			Station station = stations.get(tmp.get("station_id").toInt());
-			station.numBikes = Integer.valueOf(tmp.get("num_bikes_available").toString().trim());
-			station.numLocks = Integer.valueOf(tmp.get("num_docks_available").toString().trim());
+			if (station != null) {
+				station.numBikes = Integer.valueOf(tmp.get("num_bikes_available").toString().trim());
+				station.numLocks = Integer.valueOf(tmp.get("num_docks_available").toString().trim());
+			}
 		}
 	}
 
