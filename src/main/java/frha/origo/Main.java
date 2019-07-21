@@ -27,7 +27,7 @@ public class Main {
 		res = getFromEndpoint(endpoints.get("station_status"), "stations");
 		populateStationsWithBikeInformation(stations, res);
 		for (Station station : stations.values()) {
-			if (station.numBikes + station.numLocks > 0)
+			if (station.isActive())
 				System.out.println(station);
 		}
 	}

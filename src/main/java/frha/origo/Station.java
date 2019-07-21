@@ -10,6 +10,9 @@ public class Station {
 		return "Station [station_id=" + station_id + ", name=" + name + ", numBikes=" + numBikes + ", numLocks="
 				+ numLocks + "]";
 	}
+	public boolean isActive() {
+		return numBikes + numLocks > 0;
+	}
 	
 
 }
